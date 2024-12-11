@@ -22,11 +22,7 @@ public class UserController {
 
     @PostMapping("/login")
     public String login(@RequestBody User user) {
-        var u = userService.verify(user);
-        if (!Objects.isNull(u)) {
-            return "success";
-        }
-        return "failure";
+        return userService.verify(user);
     }
 
 
