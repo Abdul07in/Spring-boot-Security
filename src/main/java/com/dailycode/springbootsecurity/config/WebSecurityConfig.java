@@ -1,5 +1,6 @@
 package com.dailycode.springbootsecurity.config;
 
+import com.dailycode.springbootsecurity.filters.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,26 +17,29 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
-
+    private final JwtAuthenticationFilter authenticationFilter;
     private final UserDetailsService userDetailsService;
 
-    public WebSecurityConfig(UserDetailsService userDetailsService) {
+    public WebSecurityConfig(JwtAuthenticationFilter authenticationFilter, UserDetailsService userDetailsService) {
+        this.authenticationFilter = authenticationFilter;
         this.userDetailsService = userDetailsService;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf(
-                AbstractHttpConfigurer::disable
-        ).authorizeHttpRequests(
-                request -> request.requestMatchers("register", "login").permitAll()
-                        .anyRequest()
-                        .authenticated()
-        ).httpBasic(Customizer.withDefaults());
+                        AbstractHttpConfigurer::disable
+                ).authorizeHttpRequests(
+                        request -> request.requestMatchers("register", "login").permitAll()
+                                .anyRequest()
+                                .authenticated()
+                ).httpBasic(Customizer.withDefaults())
+                .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
 //                .formLogin(Customizer.withDefaults());
         return httpSecurity.build();
     }
